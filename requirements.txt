@@ -5,3 +5,14 @@ sentence-transformers
 faiss-cpu
 openai
 pandas
+bs4
+langchain
+langchain-community
+langchain-huggingface
+langchain-google-genai
+google-generativeai
+langchain-chroma
+requests
+python-dotenv
+rank-bm25
+numpy
