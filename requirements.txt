@@ -14,4 +14,4 @@ chromadb==0.4.24
 requests
 python-dotenv
 rank-bm25
-numpy==1.26.4
+numpy==1.23.5
