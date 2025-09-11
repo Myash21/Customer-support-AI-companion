@@ -10,6 +10,7 @@ langchain-huggingface
 langchain-google-genai
 google-generativeai
 langchain-chroma
+chromadb==0.4.24
 requests
 python-dotenv
 rank-bm25
