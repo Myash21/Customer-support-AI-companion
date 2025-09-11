@@ -1,3 +1,10 @@
+try:
+    import pysqlite3 as sqlite3  # noqa: F401
+    import sys as _sys
+    _sys.modules["sqlite3"] = sqlite3
+    _sys.modules["pysqlite3"] = sqlite3
+except Exception:
+    pass
 import streamlit as st
 import json
 import pandas as pd
