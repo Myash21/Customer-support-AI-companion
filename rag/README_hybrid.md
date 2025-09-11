@@ -13,11 +13,10 @@ Query → HybridRetrievalOrchestrator
 
 ## 📁 Files Overview
 
-- **`hybrid_retrieval.py`**: Core hybrid retrieval orchestrator
-- **`hybrid_retriever.py`**: LangChain retriever wrapper
+- **`hybrid_retrieval_engine.py`**: Core hybrid retrieval orchestrator
+- **`hybrid_retrieval_adapter.py`**: LangChain retriever wrapper
 - **`hybrid_config.py`**: Configuration settings
 - **`rag_pipeline.py`**: Updated main pipeline with hybrid support
-- **`test_hybrid.py`**: Test script for validation
 
 ## 🔧 Key Features
 
