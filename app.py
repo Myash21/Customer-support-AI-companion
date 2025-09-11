@@ -52,6 +52,27 @@ with tabs[0]:
                 mime="text/csv"
             )
 
+            results_map = {r["id"]: r for r in results}
+            st.divider()
+            st.subheader("Tickets")
+            for ticket in sample_tickets:
+                header = f"{ticket['id']} — {ticket['subject']}"
+                with st.expander(header):
+                    col1, col2, col3 = st.columns(3)
+                    r = results_map.get(ticket["id"]) if results_map else None
+                    if r:
+                        col1.metric("Topic", r["topic"])
+                        col2.metric("Sentiment", r["sentiment"])
+                        col3.metric("Priority", r["priority"])
+                    else:
+                        col1.metric("Topic", "-")
+                        col2.metric("Sentiment", "-")
+                        col3.metric("Priority", "-")
+                    st.markdown("**Subject**")
+                    st.write(ticket["subject"]) 
+                    st.markdown("**Body**")
+                    st.write(ticket["body"]) 
+
 with tabs[1]:
     st.header("Test Individual Ticket")
     
