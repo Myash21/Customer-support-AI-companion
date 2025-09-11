@@ -7,9 +7,9 @@ import os
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 try:
-    from .hybrid_retriever import create_hybrid_retriever
+    from .hybrid_retrieval_adapter import create_hybrid_retriever
 except ImportError:
-    from hybrid_retriever import create_hybrid_retriever
+    from hybrid_retrieval_adapter import create_hybrid_retriever
 load_dotenv()
 
 # -------------------------

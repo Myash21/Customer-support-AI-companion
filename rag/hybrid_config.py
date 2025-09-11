@@ -71,3 +71,4 @@ def print_config():
         print(f"\n📋 {section_name.upper()}:")
         for key, value in section_config.items():
             print(f"  {key}: {value}")
+

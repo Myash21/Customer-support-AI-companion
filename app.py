@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import pandas as pd
-from pipeline.classifier import TicketClassifier
+from classification.classifier import TicketClassifier
 from rag.rag_pipeline import rag_answer
 
 # Load sample tickets
@@ -131,7 +131,6 @@ with tabs[2]:
         
         with col2:
             subject = st.text_input("Email Subject", value="Need help with database connection")
-            priority_override = st.selectbox("Priority Override", ["Auto", "High", "Medium", "Low"])
         
         body = st.text_area(
             "Email Body",
@@ -159,9 +158,7 @@ with tabs[2]:
                 result["channel"] = "Email"
                 result["original_subject"] = subject
                 
-                # Override priority if specified
-                if priority_override != "Auto":
-                    result["priority"] = priority_override
+                
             
             st.success("Email processed successfully!")
             
