@@ -2,8 +2,6 @@ streamlit
 transformers
 torch
 sentence-transformers
-faiss-cpu
-openai
 pandas
 bs4
 langchain
