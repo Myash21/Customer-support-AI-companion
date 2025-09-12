@@ -36,44 +36,84 @@ tabs = st.tabs(["Dashboard", "Test Individual Ticket", "Classification Stats"])
 with tabs[0]:
     st.header("Bulk Ticket Classification Dashboard")
     
-    if st.button("Classify All Tickets"):
-        with st.spinner("Classifying tickets..."):
-            results = []
-            for ticket in sample_tickets:
-                results.append(classifier.classify_ticket(ticket))
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        if st.button("Classify All Tickets", type="primary"):
+            # Initialize progress tracking
+            progress_bar = st.progress(0)
+            status_text = st.empty()
             
-            df = pd.DataFrame(results)
-            st.dataframe(df, use_container_width=True)
+            status_text.text("Starting classification...")
+            progress_bar.progress(10)
             
-            # Download button
-            csv = df.to_csv(index=False)
-            st.download_button(
-                label="Download Results as CSV",
-                data=csv,
-                file_name="ticket_classifications.csv",
-                mime="text/csv"
-            )
+            try:
+                # Process in chunks for better progress tracking
+                chunk_size = max(1, len(sample_tickets) // 10)  # 10 progress updates
+                results = []
+                
+                for i in range(0, len(sample_tickets), chunk_size):
+                    chunk = sample_tickets[i:i + chunk_size]
+                    chunk_results = classifier.classify_tickets_bulk(chunk, max_workers=4)
+                    results.extend(chunk_results)
+                    
+                    # Update progress
+                    progress = min(90, (i + len(chunk)) / len(sample_tickets) * 90)
+                    progress_bar.progress(int(progress))
+                    status_text.text(f"Processed {len(results)}/{len(sample_tickets)} tickets...")
+                
+                progress_bar.progress(100)
+                status_text.text("Classification complete!")
+                
+                # Store results in session state for reuse
+                st.session_state['bulk_results'] = results
+                
+            except Exception as e:
+                st.error(f"Error during classification: {str(e)}")
+                status_text.text("Classification failed!")
+    
+    with col2:
+        if st.button("Clear Cache"):
+            if 'bulk_results' in st.session_state:
+                del st.session_state['bulk_results']
+                st.success("Cache cleared!")
+            else:
+                st.info("No cache to clear")
+    
+    # Display results if available
+    if 'bulk_results' in st.session_state:
+        results = st.session_state['bulk_results']
+        df = pd.DataFrame(results)
+        st.dataframe(df, use_container_width=True)
+        
+        # Download button
+        csv = df.to_csv(index=False)
+        st.download_button(
+            label="Download Results as CSV",
+            data=csv,
+            file_name="ticket_classifications.csv",
+            mime="text/csv"
+        )
 
-            results_map = {r["id"]: r for r in results}
-            st.divider()
-            st.subheader("Tickets")
-            for ticket in sample_tickets:
-                header = f"{ticket['id']} — {ticket['subject']}"
-                with st.expander(header):
-                    col1, col2, col3 = st.columns(3)
-                    r = results_map.get(ticket["id"]) if results_map else None
-                    if r:
-                        col1.metric("Topic", r["topic"])
-                        col2.metric("Sentiment", r["sentiment"])
-                        col3.metric("Priority", r["priority"])
-                    else:
-                        col1.metric("Topic", "-")
-                        col2.metric("Sentiment", "-")
-                        col3.metric("Priority", "-")
-                    st.markdown("**Subject**")
-                    st.write(ticket["subject"]) 
-                    st.markdown("**Body**")
-                    st.write(ticket["body"]) 
+        results_map = {r["id"]: r for r in results}
+        st.divider()
+        st.subheader("Tickets")
+        for ticket in sample_tickets:
+            header = f"{ticket['id']} — {ticket['subject']}"
+            with st.expander(header):
+                col1, col2, col3 = st.columns(3)
+                r = results_map.get(ticket["id"]) if results_map else None
+                if r:
+                    col1.metric("Topic", r["topic"])
+                    col2.metric("Sentiment", r["sentiment"])
+                    col3.metric("Priority", r["priority"])
+                else:
+                    col1.metric("Topic", "-")
+                    col2.metric("Sentiment", "-")
+                    col3.metric("Priority", "-")
+                st.markdown("**Subject**")
+                st.write(ticket["subject"]) 
+                st.markdown("**Body**")
+                st.write(ticket["body"]) 
 
 with tabs[1]:
     st.header("Test Individual Ticket")
@@ -184,9 +224,14 @@ with tabs[2]:
     
     if st.button("Generate Statistics"):
         with st.spinner("Analyzing classifications..."):
-            results = []
-            for ticket in sample_tickets:
-                results.append(classifier.classify_ticket(ticket))
+            # Use cached results if available, otherwise run classification
+            if 'bulk_results' in st.session_state:
+                results = st.session_state['bulk_results']
+                st.info("Using cached results from previous classification")
+            else:
+                st.info("No cached results found. Running classification...")
+                results = classifier.classify_tickets_bulk(sample_tickets, max_workers=4)
+                st.session_state['bulk_results'] = results
             
             df = pd.DataFrame(results)
             

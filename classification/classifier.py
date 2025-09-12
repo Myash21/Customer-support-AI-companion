@@ -1,5 +1,6 @@
 from transformers import pipeline
 import torch
+import concurrent.futures
 
 class TicketClassifier:
     def __init__(self):
@@ -76,3 +77,30 @@ class TicketClassifier:
             "sentiment": self.classify_sentiment(body),
             "priority": self.classify_priority(body)
         }
+    
+    def classify_tickets_bulk(self, tickets: list, max_workers: int = 4) -> list:
+        """Bulk classification with parallel processing"""
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_ticket = {
+                executor.submit(self.classify_ticket, ticket): ticket 
+                for ticket in tickets
+            }
+            
+            results = []
+            for future in concurrent.futures.as_completed(future_to_ticket):
+                ticket = future_to_ticket[future]
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    print(f"Error classifying ticket {ticket['id']}: {e}")
+                    results.append({
+                        "id": ticket["id"],
+                        "subject": ticket["subject"],
+                        "topic": "Error",
+                        "sentiment": "Error", 
+                        "priority": "Error"
+                    })
+        
+        # Return results in original order
+        return sorted(results, key=lambda x: tickets.index(next(t for t in tickets if t["id"] == x["id"])))

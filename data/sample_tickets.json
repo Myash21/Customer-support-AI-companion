@@ -5,31 +5,6 @@
       "body": "Hi team, we're trying to set up our primary Snowflake production database as a new source in Atlan, but the connection keeps failing. We've tried using our standard service account, but it's not working. Our entire BI team is blocked on this integration for a major upcoming project, so it's quite urgent. Could you please provide a definitive list of the exact permissions and credentials needed on the Snowflake side to get this working? Thanks."
     },
     {
-      "id": "TICKET-246",
-      "subject": "Which connectors automatically capture lineage?",
-      "body": "Hello, I'm new to Atlan and trying to understand the lineage capabilities. The documentation mentions automatic lineage, but it's not clear which of our connectors (we use Fivetran, dbt, and Tableau) support this out-of-the-box. We need to present a clear picture of our data flow to leadership next week. Can you explain how lineage capture differs for these tools?"
-    },
-    {
-      "id": "TICKET-251",
-      "subject": "Using the Visual Query Builder",
-      "body": "I'm a business analyst and not very comfortable with writing complex SQL. I was excited to see the Visual Query Builder in Atlan, but I'm having trouble figuring out how to join multiple tables and save my query for later use. Is there a tutorial or a quick guide you can point me to?"
-    },
-    {
-      "id": "TICKET-252",
-      "subject": "Programmatic extraction of lineage",
-      "body": "Our internal data science team wants to build a custom application that analyzes metadata propagation delays. To do this, we need to programmatically extract lineage data from Atlan via an API. Does the API expose lineage information, and if so, could you provide an example of the endpoint and the structure of the response?"
-    },
-    {
-      "id": "TICKET-253",
-      "subject": "Upstream lineage to Snowflake view not working",
-      "body": "This is infuriating. We have a critical Snowflake view, `finance.daily_revenue`, that is built from three upstream tables. Atlan is correctly showing the downstream dependencies, but the upstream lineage is completely missing. This makes the view untrustworthy for our analysts. We've re-run the crawler multiple times. What could be causing this? This is a huge problem for us."
-    },
-    {
-      "id": "TICKET-254",
-      "subject": "How to create a business glossary and link terms in bulk?",
-      "body": "We are migrating our existing business glossary from a spreadsheet into Atlan. We have over 500 terms. Manually creating each one and linking them to thousands of assets seems impossible. Is there a bulk import feature using CSV or an API to create terms and link them to assets? This is blocking our entire governance initiative."
-    },
-    {
       "id": "TICKET-271",
       "subject": "Asset extracted but not published to Atlan",
       "body": "This is very strange. I'm looking at the crawler logs, and I can see that the asset 'schema.my_table' was successfully extracted from the source. However, when I search for this table in the Atlan UI, it doesn't appear. It seems like it's getting stuck somewhere between extraction and publishing. Can you please investigate the root cause?"
