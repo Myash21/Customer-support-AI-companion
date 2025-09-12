@@ -3,21 +3,25 @@ import torch
 
 class TicketClassifier:
     def __init__(self):
-        # Set device
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # Set transformers pipeline device index: 0 for CUDA, -1 for CPU
+        self.device_index = 0 if torch.cuda.is_available() else -1
         
         # Zero-shot classification for topics
-        self.topic_classifier = pipeline("zero-shot-classification", 
-                                         model="facebook/bart-large-mnli",
-                                         device=self.device,
-                                         torch_dtype=torch.float32)
+        self.topic_classifier = pipeline(
+            "zero-shot-classification",
+            model="facebook/bart-large-mnli",
+            device=self.device_index,
+            torch_dtype=torch.float32,
+        )
         
         # Emotion classifier for sentiment
-        self.sentiment_classifier = pipeline("text-classification", 
-                                             model="j-hartmann/emotion-english-distilroberta-base",
-                                             return_all_scores=False,
-                                             device=self.device,
-                                             torch_dtype=torch.float32)
+        self.sentiment_classifier = pipeline(
+            "text-classification",
+            model="j-hartmann/emotion-english-distilroberta-base",
+            return_all_scores=False,
+            device=self.device_index,
+            torch_dtype=torch.float32,
+        )
 
         # Predefined topic labels
         self.topic_labels = [
