@@ -6,8 +6,10 @@ try:
 except Exception:
     pass
 import streamlit as st
+import re
 import json
 import pandas as pd
+from email_support.sender import send_email
 from classification.classifier import TicketClassifier
 from rag.rag_pipeline import rag_answer
 
@@ -29,7 +31,7 @@ if not st.session_state.get('api_key_warning_shown', False):
         st.warning("⚠️ Google API key not found. Please set GOOGLE_API_KEY environment variable for AI responses to work.")
         st.session_state['api_key_warning_shown'] = True
 
-tabs = st.tabs(["Dashboard", "Test Individual Ticket", "Test Email", "Classification Stats"])
+tabs = st.tabs(["Dashboard", "Test Individual Ticket", "Classification Stats"])
 
 with tabs[0]:
     st.header("Bulk Ticket Classification Dashboard")
@@ -94,152 +96,90 @@ with tabs[1]:
             with st.spinner("Classifying ticket..."):
                 result = classifier.classify_ticket(ticket)
             
-            st.success("Classification Complete!")
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Topic", result["topic"])
-            with col2:
-                st.metric("Sentiment", result["sentiment"])
-            with col3:
-                st.metric("Priority", result["priority"])
-            
-            # RAG Integration based on classification
-            st.divider()
-            st.subheader("🤖 AI Response")
-            
-            # Topics that should use RAG
-            rag_topics = ["How-to", "Product", "Best practices", "API/SDK", "SSO"]
-            
-            if result["topic"] in rag_topics:
-                with st.spinner("Generating AI response using knowledge base..."):
+            # Store result in session state
+            st.session_state['last_classification'] = {
+                'result': result,
+                'ticket': ticket
+            }
+    
+    # Display classification results if available
+    if 'last_classification' in st.session_state:
+        result = st.session_state['last_classification']['result']
+        ticket = st.session_state['last_classification']['ticket']
+        ticket_id = ticket['id']
+        subject = ticket['subject']
+        body = ticket['body']
+        
+        st.success("Classification Complete!")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Topic", result["topic"])
+        with col2:
+            st.metric("Sentiment", result["sentiment"])
+        with col3:
+            st.metric("Priority", result["priority"])
+        
+        # RAG Integration based on classification
+        st.divider()
+        st.subheader("🤖 AI Response")
+        
+        # Topics that should use RAG
+        rag_topics = ["How-to", "Product", "Best practices", "API/SDK", "SSO"]
+        
+        if result["topic"] in rag_topics:
+            with st.spinner("Generating AI response using knowledge base..."):
+                try:
+                    # Create a comprehensive query from the ticket
+                    query = f"Subject: {subject}\n\nQuestion: {body}"
+                    answer, sources = rag_answer(query)
+                    
+                    st.success("AI Response Generated!")
+                    
+                    # Display the answer
+                    st.markdown("**Answer:**")
+                    st.write(answer)
+                    
+                    # Display sources if available
+                    if sources and sources != ["Unknown"]:
+                        st.markdown("**Sources:**")
+                        for i, source in enumerate(sources, 1):
+                            st.write(f"{i}. {source}")
+                    else:
+                        st.warning("No specific sources found in knowledge base.")
+                        
+                except Exception as e:
+                    st.error(f"Error generating AI response: {str(e)}")
+                    st.info("Please check your Google API key configuration.")
+        else:
+            st.info(f"This ticket has been classified as a '{result['topic']}' issue")
+            st.markdown("**Notify a domain expert by email**")
+            expert_email = st.text_input("Domain expert email", key="expert_email_input")
+            if st.button("Send email to expert", key="send_expert_email_btn"):
+                email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+                if not expert_email or not re.match(email_pattern, expert_email):
+                    st.error("Please enter a valid email address.")
+                else:
                     try:
-                        # Create a comprehensive query from the ticket
-                        query = f"Subject: {subject}\n\nQuestion: {body}"
-                        answer, sources = rag_answer(query)
-                        
-                        st.success("AI Response Generated!")
-                        
-                        # Display the answer
-                        st.markdown("**Answer:**")
-                        st.write(answer)
-                        
-                        # Display sources if available
-                        if sources and sources != ["Unknown"]:
-                            st.markdown("**Sources:**")
-                            for i, source in enumerate(sources, 1):
-                                st.write(f"{i}. {source}")
-                        else:
-                            st.warning("No specific sources found in knowledge base.")
-                            
+                        email_subject = f"Ticket {ticket_id}: {subject} — {result['topic']}"
+                        email_body = (
+                            f"A new ticket has been classified as '{result['topic']}'.\n\n"
+                            f"Ticket ID: {ticket_id}\n"
+                            f"Priority: {result['priority']}\n"
+                            f"Sentiment: {result['sentiment']}\n\n"
+                            f"Subject: {subject}\n\n"
+                            f"Body:\n{body}\n"
+                        )
+                        send_email(expert_email, email_subject, email_body)
+                        st.success("Email sent to domain expert.")
                     except Exception as e:
-                        st.error(f"Error generating AI response: {str(e)}")
-                        st.info("Please check your Google API key configuration.")
-            else:
-                # Non-RAG topics - show routing message
-                st.info(f"📋 This ticket has been classified as a **'{result['topic']}'** issue and routed to the appropriate team.")
-                st.write("The support team will handle this ticket based on the classification and priority level.")
-            
-            # Show full classification details
-            with st.expander("View Full Classification Details"):
-                st.json(result)
+                        st.error(f"Failed to send email: {str(e)}")
+        
+        # Show full classification details
+        with st.expander("View Full Classification Details"):
+            st.json(result)
 
 with tabs[2]:
-    st.header("Test Email Processing")
-    
-    # Email input form
-    with st.form("email_form"):
-        st.subheader("📧 Email Input")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            sender_name = st.text_input("Sender Name", value="John Doe")
-            sender_email = st.text_input("Sender Email", value="john.doe@company.com")
-        
-        with col2:
-            subject = st.text_input("Email Subject", value="Need help with database connection")
-        
-        body = st.text_area(
-            "Email Body",
-            value="Hi Atlan Support team,\n\nI'm having trouble connecting our Snowflake database to Atlan. The connection keeps failing and I'm not sure what permissions are needed. Could you please help me with this?\n\nThanks,\nJohn",
-            height=200
-        )
-        
-        submitted = st.form_submit_button("Process Email")
-        
-        if submitted:
-            # Create ticket from email
-            ticket = {
-                "id": f"EMAIL-{len(sample_tickets) + 1:03d}",
-                "subject": subject,
-                "body": f"From: {sender_name} <{sender_email}>\n\n{body}"
-            }
-            
-            with st.spinner("Processing email..."):
-                # Classify the email
-                result = classifier.classify_ticket(ticket)
-                
-                # Add email-specific info
-                result["sender_name"] = sender_name
-                result["sender_email"] = sender_email
-                result["channel"] = "Email"
-                result["original_subject"] = subject
-                
-                
-            
-            st.success("Email processed successfully!")
-            
-            # Display results similar to individual ticket
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Topic", result["topic"])
-            with col2:
-                st.metric("Sentiment", result["sentiment"])
-            with col3:
-                st.metric("Priority", result["priority"])
-            
-            # RAG Integration based on classification
-            st.divider()
-            st.subheader("🤖 AI Response")
-            
-            # Topics that should use RAG
-            rag_topics = ["How-to", "Product", "Best practices", "API/SDK", "SSO"]
-            
-            if result["topic"] in rag_topics:
-                with st.spinner("Generating AI response using knowledge base..."):
-                    try:
-                        # Create a comprehensive query from the email
-                        query = f"Subject: {subject}\n\nQuestion: {body}"
-                        answer, sources = rag_answer(query)
-                        
-                        st.success("AI Response Generated!")
-                        
-                        # Display the answer
-                        st.markdown("**Answer:**")
-                        st.write(answer)
-                        
-                        # Display sources if available
-                        if sources and sources != ["Unknown"]:
-                            st.markdown("**Sources:**")
-                            for i, source in enumerate(sources, 1):
-                                st.write(f"{i}. {source}")
-                        else:
-                            st.warning("No specific sources found in knowledge base.")
-                            
-                    except Exception as e:
-                        st.error(f"Error generating AI response: {str(e)}")
-                        st.info("Please check your Google API key configuration.")
-            else:
-                # Non-RAG topics - show routing message
-                st.info(f"📋 This email has been classified as a **'{result['topic']}'** issue and routed to the appropriate team.")
-                st.write("The support team will handle this email based on the classification and priority level.")
-            
-            # Show full classification details
-            with st.expander("View Full Classification Details"):
-                st.json(result)
-
-with tabs[3]:
     st.header("Classification Statistics")
     
     if st.button("Generate Statistics"):
