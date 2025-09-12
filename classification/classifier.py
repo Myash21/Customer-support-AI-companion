@@ -8,19 +8,17 @@ class TicketClassifier:
         
         # Zero-shot classification for topics
         self.topic_classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=self.device_index,
-            torch_dtype=torch.float32,
+        "zero-shot-classification",
+        model="facebook/bart-large-mnli",
+        device=self.device_index
         )
         
         # Emotion classifier for sentiment
         self.sentiment_classifier = pipeline(
-            "text-classification",
-            model="j-hartmann/emotion-english-distilroberta-base",
-            return_all_scores=False,
-            device=self.device_index,
-            torch_dtype=torch.float32,
+        "text-classification",
+        model="j-hartmann/emotion-english-distilroberta-base",
+        return_all_scores=False,
+        device=self.device_index
         )
 
         # Predefined topic labels
