@@ -17,7 +17,7 @@ Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, lat
 - Set these environment variables before running:
 
 ```bash
-GOOGLE_API_KEY="AIzaSyAoRTbdK0mc3oFAi044inQy76SdFwL69W0"
+GOOGLE_API_KEY="<your_key>"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
 SMTP_USER="you@example.com"
@@ -192,19 +192,6 @@ result = chain.invoke({"input": "Your query here"})
 - Gmail: create an App Password (Google Account → Security → 2‑Step Verification → App passwords) and use it as `SMTP_PASSWORD`.
 - Office 365: `SMTP_HOST=smtp.office365.com`, `SMTP_PORT=587`; may require an app password or modern auth-enabled relay.
 
-### Windows setup quick commands
-
-PowerShell (current session):
-
-```powershell
-$env:GOOGLE_API_KEY = "<your_key>"
-$env:SMTP_HOST = "smtp.gmail.com"
-$env:SMTP_PORT = "587"
-$env:SMTP_USER = "you@example.com"
-$env:SMTP_PASSWORD = "<app_password>"
-$env:SMTP_FROM = "you@example.com"
-streamlit run app.py
-```
 
 ## 4) Classification Stats
 
