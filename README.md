@@ -4,7 +4,7 @@ A production-minded prototype for end-to-end ticket understanding and assistance
 
 - **Ticket Classification**: Topic tags, sentiment, and priority from raw emails or tickets
 - **Hybrid RAG**: Dense + BM25 retrieval over product docs and developer guides
-- **Test Email**: Paste a realistic support email and get topic/sentiment/priority + AI answer
+- **Domain expert notification**: For non-RAG topics, enter an expert's email and send a notification with ticket details
 - **Classification Stats**: Bulk analytics and charts over sample tickets
 
 Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, latency, and cost-awareness.
@@ -14,11 +14,16 @@ Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, lat
 1) Environment
 
 - Python 3.9+
-- Set required env vars before running:
-  - `GOOGLE_API_KEY` for Gemini (if using Gemini API)
-  - `CHROMA_PERSIST_DIR` (optional; defaults to `chroma_db`)
-  - `WIPE_CHROMA` (optional; `true` to rebuild)
-  - `ACCESS_VISIBILITY`, `ACCESS_DEPT` (optional metadata for indexing)
+- Set these environment variables before running:
+
+```bash
+GOOGLE_API_KEY="AIzaSyAoRTbdK0mc3oFAi044inQy76SdFwL69W0"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="you@example.com"
+SMTP_PASSWORD="your_app_password"
+SMTP_FROM="you@example.com"
+```
 
 2) Install
 
@@ -161,15 +166,45 @@ chain = create_retrieval_chain(retriever, document_chain)
 result = chain.invoke({"input": "Your query here"})
 ```
 
-## 3) Test Email
+## 3) Domain Expert Notification
 
-- Paste a realistic support email (sender name/email, subject, body)
-- The app constructs a ticket and runs the same classifiers used elsewhere
-- Outputs:
-  - **Topic** (e.g., How-to, API/SDK)
-  - **Sentiment** (Angry, Curious, Neutral, Frustrated)
-  - **Priority** (P0/P1/P2 based on urgency cues)
-- If topic is RAG-eligible, the system generates an AI answer using the knowledge base with source links
+- In the Test Individual Ticket tab, if the classified topic is not in the RAG-eligible list, the app shows:
+  - A notice: "This ticket has been classified as a 'topic' issue"
+  - An input to enter a domain expert's email and a button to send
+- On send, the app emails the expert with ticket ID, subject, body, priority, and sentiment using `email_support/sender.py` (SMTP-based)
+
+### Implementation details
+
+- Trigger condition: executes for non-RAG topics (RAG topics are `How-to`, `Product`, `Best practices`, `API/SDK`, `SSO`).
+- UI flow location: `app.py` → Test Individual Ticket tab → non-RAG branch.
+  - The classification result is saved to `st.session_state['last_classification']` outside the `st.form()` to allow separate action buttons.
+  - Email input is validated via regex before sending: `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`.
+- Email sending function: `email_support/sender.py`
+  - Signature: `send_email(recipient_email: str, subject: str, body: str) -> None`
+  - Loads environment via `dotenv` if present.
+  - Uses `SMTP_HOST` (default `smtp.gmail.com`) and `SMTP_PORT` (default `587`).
+  - Auth required: `SMTP_USER` and `SMTP_PASSWORD` (raises if missing).
+  - From address: `SMTP_FROM` (falls back to `SMTP_USER`).
+  - TLS: `server.starttls()` then `server.login(...)` before `sendmail(...)`.
+
+### Provider notes
+
+- Gmail: create an App Password (Google Account → Security → 2‑Step Verification → App passwords) and use it as `SMTP_PASSWORD`.
+- Office 365: `SMTP_HOST=smtp.office365.com`, `SMTP_PORT=587`; may require an app password or modern auth-enabled relay.
+
+### Windows setup quick commands
+
+PowerShell (current session):
+
+```powershell
+$env:GOOGLE_API_KEY = "<your_key>"
+$env:SMTP_HOST = "smtp.gmail.com"
+$env:SMTP_PORT = "587"
+$env:SMTP_USER = "you@example.com"
+$env:SMTP_PASSWORD = "<app_password>"
+$env:SMTP_FROM = "you@example.com"
+streamlit run app.py
+```
 
 ## 4) Classification Stats
 
