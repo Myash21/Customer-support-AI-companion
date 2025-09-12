@@ -243,6 +243,49 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
   - **Decision**: On-disk persistence for reusability across runs
   - **Trade-off**: Local disk usage; enables quick startup and reproducibility
 
+### Vector Database Choice: ChromaDB vs Alternatives
+
+**Why ChromaDB over other vector databases:**
+
+- **vs FAISS**: 
+  - FAISS requires manual index serialization/deserialization and lacks built-in metadata filtering
+  - ChromaDB provides automatic persistence, metadata queries, and easier LangChain integration
+  - FAISS is more suitable for research/prototyping; ChromaDB better for production applications
+
+- **vs Qdrant**:
+  - Qdrant requires separate server deployment and network configuration
+  - ChromaDB runs embedded, eliminating infrastructure complexity
+  - Qdrant offers advanced features (payload filtering, geo-search) unnecessary for this use case
+
+- **vs Pinecone**:
+  - Pinecone is cloud-only with API costs and external dependencies
+  - ChromaDB runs locally, ensuring data privacy and eliminating ongoing costs
+  - Pinecone requires internet connectivity; ChromaDB works offline
+
+- **vs Weaviate**:
+  - Weaviate requires Docker/server setup and more complex configuration
+  - ChromaDB has simpler deployment and lower resource requirements
+  - Weaviate's GraphQL interface adds complexity for this straightforward use case
+
+**Deployment Constraints Considered:**
+- **Streamlit Cloud limitations**: No persistent storage, limited memory, no external services
+- **Cost optimization**: Avoid cloud vector DB fees and API costs
+- **Simplicity**: Minimize infrastructure dependencies and configuration complexity
+- **Data privacy**: Keep sensitive documentation local without external API calls
+
+**Why ChromaDB is included in the repo:**
+- **Portability**: Complete self-contained solution that works across different environments
+- **Reproducibility**: Anyone can clone and run without external service setup
+- **Version control**: Vector database state can be tracked and shared
+- **Offline capability**: Works without internet connectivity for retrieval
+- **Development speed**: No need to set up external services during development
+
+**Production-Grade Alternative:**
+For production deployments, will be considering **Qdrant** or **Weaviate** for their advanced features:
+- **Qdrant**: Better performance, horizontal scaling, advanced filtering, and production-ready clustering
+- **Weaviate**: GraphQL API, multi-tenancy, enterprise security features, and better metadata management
+- **Rationale**: These offer better scalability, reliability, and enterprise features compared to embedded ChromaDB
+
 ## Performance and Reliability
 
 - Latency: Hybrid retrieval adds overhead; tune `top_k_*` and weights to balance quality vs speed
@@ -250,20 +293,75 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
 - Robustness: Automatic fallback to dense-only path; retry logic for transient failures
 - Dedupe: Content hashing prevents index bloat and duplicate sources
 
+## Evaluation
+
+### Retrieval Performance
+
+The retrieval system was manually evaluated using a set of custom support tickets to assess how well the hybrid retriever (dense + sparse) finds relevant documents. The evaluation process involved:
+
+- **Test Dataset**: 20 custom support tickets covering various topics (permissions, connectors, SSO, API usage)
+- **Ground Truth**: Manually identified relevant documents for each query from the knowledge base
+- **Metric**: Recall@k (where k=3, matching the retriever's final_top_k configuration)
+- **Result**: Recall@3 = 0.76
+
+**Analysis**: The 0.76 recall score indicates that 76% of queries had at least one relevant document in the top-3 retrieved results. This performance can be improved by:
+- Adding more comprehensive content to the knowledge base
+- Better document chunking strategies for technical content
+- Fine-tuning the hybrid retrieval weights (dense vs sparse)
+- The current score was constrained by limited familiarity with the dataset during initial curation
+
+### Generation Quality
+
+A formal evaluation of answer quality has not been conducted yet. Future evaluation plans include:
+
+**Heuristic Methods** (fast, deterministic):
+- **Style Compliance**: Check for required sections (Context, Next steps), bullet formatting, citation presence
+- **Conciseness**: Token count analysis against target ranges
+- **Directness**: Count of actionable steps and imperative statements
+- **Citation Format**: Verify proper source attribution structure
+
+**LLM-as-Judge Methods** (comprehensive, requires evaluator model):
+- **Answer Relevancy**: How well the response addresses the user's question intent
+- **Faithfulness/Groundedness**: Degree to which claims are supported by provided context
+- **Citation Accuracy**: Whether cited sources actually contain the supporting evidence
+- **Hallucination Detection**: Identification of unsupported claims not in the context
+- **Outside Knowledge Over-reliance**: Detection when external facts are introduced unnecessarily
+
+**Implementation Approach**:
+- Use a separate evaluator LLM (e.g., Gemini or Claude) to score generation quality
+- Implement both per-sample scoring and aggregate metrics
+- Establish evaluation thresholds through calibration on a small labeled subset
+- Track both mean scores and failure rates for quick regression detection
+
 ## Security and Privacy
 
-- Outbound requests: Gemini API calls if enabled; ensure compliance with data-handling policies
-- Redaction: Consider pre-processing to strip PII before external calls
-- Access control: Optional `access_visibility` and `access_dept` metadata for future filtering
+- **Data handling**: Gemini API calls send queries externally; ensure compliance with your data policies
+- **PII protection**: Pre-process tickets to remove personal information before API calls
+- **Access control**: Built-in metadata fields (`access_visibility`, `access_dept`) for future role-based filtering
+- **Local storage**: ChromaDB keeps vector data local; no external vector database dependencies
 
-## Roadmap
+## Future Enhancements
 
+### Immediate Improvements
 - Learned priority model when labeled data is available
 - Caching layer for retrieval results and answers
 - Async retrieval for improved concurrency
 - Adaptive weighting based on query type
-- Additional retrievers and A/B testing framework
-- On-device models as configurable fallbacks
+
+### Advanced RAG Techniques
+- **Semantic chunking**: Multi-granularity chunking (paragraph + sentence) with semantic coherence
+- **Domain-tuned embeddings**: Replace general-purpose embeddings with domain-specific models
+- **Query optimization**: Query rewriting, paraphrasing, and acronym expansion for better hit rates
+- **Re-ranking**: Add re-ranking layer after hybrid retrieval for improved precision
+- **Graph RAG**: Incorporate knowledge graph structure for better reasoning and context
+- **Context pruning**: Intelligent document filtering to reduce noise and improve relevance
+
+### Production Scaling
+- **Vector database upgrade**: Migrate to Qdrant or Weaviate for better performance and scalability
+- **Hallucination mitigation**: Add grounding mechanisms, citation highlighting, and fact-checking subagents
+- **Cost optimization**: Implement ANN (Approximate Nearest Neighbor) search and embedding dimension optimization
+- **A/B testing framework**: Compare different retrieval strategies and model configurations
+- **On-device models**: Configurable fallbacks for offline operation and reduced API costs
 
 ## Troubleshooting
 
