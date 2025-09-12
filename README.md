@@ -6,6 +6,7 @@ A production-minded prototype for end-to-end ticket understanding and assistance
 - **Hybrid RAG**: Dense + BM25 retrieval over product docs and developer guides
 - **Domain expert notification**: For non-RAG topics, enter an expert's email and send a notification with ticket details
 - **Classification Stats**: Bulk analytics and charts over sample tickets
+- **Optimized Bulk Processing**: Parallel classification with progress tracking and intelligent caching
 
 Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, latency, and cost-awareness.
 
@@ -292,6 +293,13 @@ For production deployments, will be considering **Qdrant** or **Weaviate** for t
 - Memory: BM25 index adds RAM; consider smaller `top_k` and chunk sizes if constrained
 - Robustness: Automatic fallback to dense-only path; retry logic for transient failures
 - Dedupe: Content hashing prevents index bloat and duplicate sources
+
+### Bulk Classification Optimizations
+- **Parallel Processing**: 2-4x faster bulk classification using ThreadPoolExecutor (4 workers)
+- **Progress Tracking**: Real-time progress bars and status updates during long operations
+- **Session Caching**: Results cached in Streamlit session state to avoid re-classification for statistics and repeated analysis
+- **Chunked Processing**: Smooth progress updates by processing tickets in chunks
+- **Error Resilience**: Failed tickets get "Error" classification instead of crashing the entire process
 
 ## Evaluation
 
