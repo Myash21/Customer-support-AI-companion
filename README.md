@@ -102,7 +102,7 @@ Rationale: Simple, deterministic, cost-free, and explainable. Emphasizes busines
 
 ## 2) Hybrid RAG System
 
-Refer to `rag/README_hybrid.md` for an in-depth overview of the hybrid RAG architecture.
+Refer to [**Hybrid RAG Documentation**](https://github.com/Myash21/Customer-support-AI-companion/blob/main/rag/README_hybrid.md) for an in-depth overview of the hybrid RAG architecture.
 
 Combines dense semantic retrieval (embeddings + ChromaDB) with sparse keyword retrieval (BM25) for better coverage and precision.
 
@@ -118,6 +118,13 @@ Combines dense semantic retrieval (embeddings + ChromaDB) with sparse keyword re
 - Embeddings: `sentence-transformers/all-MiniLM-L6-v2`
 - Persistence: Chroma collection `db_docs` in `CHROMA_PERSIST_DIR` (default `chroma_db`)
 - Batch ingest (200 items): `add_texts(texts, metadatas, ids)` with IDs = `content_hash`
+
+### Knowledge Base Sources
+
+The vector database is built from Atlan's official documentation. To see the complete list of URLs, check `utils/build_vectordb.py`:
+
+- **DOCS_URLS**: Product docs, how-to guides, troubleshooting
+- **DEV_URLS**: API references, SDKs, developer resources
 
 ### Retrieval Engine
 
@@ -167,7 +174,7 @@ chain = create_retrieval_chain(retriever, document_chain)
 result = chain.invoke({"input": "Your query here"})
 ```
 
-## 3) Domain Expert Notification
+## 3) Domain Expert Email Notification
 
 - In the Test Individual Ticket tab, if the classified topic is not in the RAG-eligible list, the app shows:
   - A notice: "This ticket has been classified as a 'topic' issue"
@@ -281,11 +288,17 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
 - **Offline capability**: Works without internet connectivity for retrieval
 - **Development speed**: No need to set up external services during development
 
+**Security Considerations:**
+- **Embedded data exposure**: While the vector database contains embedded representations rather than raw text, the included ChromaDB files still contain sensitive information that could be reverse-engineered
+- **Repository security**: Having the vector database in the repo means anyone with repository access can potentially extract the embedded knowledge base
+- **Production risk**: For production deployments with sensitive documentation, this approach poses security risks and should be avoided
+
 **Production-Grade Alternative:**
 For production deployments, will be considering **Qdrant** or **Weaviate** for their advanced features:
 - **Qdrant**: Better performance, horizontal scaling, advanced filtering, and production-ready clustering
 - **Weaviate**: GraphQL API, multi-tenancy, enterprise security features, and better metadata management
 - **Rationale**: These offer better scalability, reliability, and enterprise features compared to embedded ChromaDB
+- **Security**: External vector databases provide better access control and data isolation for sensitive information
 
 ## Performance and Reliability
 
@@ -302,6 +315,20 @@ For production deployments, will be considering **Qdrant** or **Weaviate** for t
 - **Error Resilience**: Failed tickets get "Error" classification instead of crashing the entire process
 
 ## Evaluation
+
+### Classification Performance
+
+The classification system was evaluated using a **partial credit scoring** method on 10 sample tickets. Each classification was scored as follows:
+- **1.0 point**: Definitely correct classification
+- **0.5 points**: Uncertain/could be one of two valid answers
+- **0.0 points**: Incorrect classification
+
+**Results:**
+- **Topic Classification**: 8.5/10 (85% accuracy)
+- **Sentiment Classification**: 9.5/10 (95% accuracy)  
+- **Priority Classification**: 8.0/10 (80% accuracy)
+
+**Analysis**: The sentiment classification performed best, likely due to the emotion model's strong performance on short text. Topic classification showed good performance with the zero-shot BART model, while priority classification had room for improvement with the rule-based approach. The partial credit scoring accounts for the subjective nature of some classification tasks where multiple valid answers may exist.
 
 ### Retrieval Performance
 
@@ -363,6 +390,8 @@ A formal evaluation of answer quality has not been conducted yet. Future evaluat
 - **Re-ranking**: Add re-ranking layer after hybrid retrieval for improved precision
 - **Graph RAG**: Incorporate knowledge graph structure for better reasoning and context
 - **Context pruning**: Intelligent document filtering to reduce noise and improve relevance
+- **Multi-modal RAG**: Support for images, diagrams, and other document types
+- **Temporal RAG**: Time-aware retrieval for versioned documentation and changelogs
 
 ### Production Scaling
 - **Vector database upgrade**: Migrate to Qdrant or Weaviate for better performance and scalability
