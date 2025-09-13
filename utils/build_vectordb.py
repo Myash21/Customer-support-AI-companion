@@ -35,7 +35,6 @@ def fetch_page(session: requests.Session, url: str) -> Tuple[str, str, str]:
         print(f"Failed to fetch {url}: {e}")
         return url, "", ""
 
-# For demo: fetch homepage + 1 subpage each (you can extend this)
 DOCS_URLS = [
     "https://docs.atlan.com/get-started/what-is-atlan",
     "https://docs.atlan.com/get-started/how-tos/custom-solutions",
