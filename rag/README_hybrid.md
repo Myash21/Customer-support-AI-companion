@@ -187,3 +187,11 @@ The hybrid implementation is designed to be a drop-in replacement:
 - **Dynamic Weights**: Adaptive weighting based on query type
 - **More Retrieval Methods**: Integration with other retrieval techniques
 - **A/B Testing**: Built-in comparison tools for different configurations
+
+### Graph RAG Integration
+- **Knowledge Graph Construction**: Extract entities and relationships from documentation
+- **Graph-Enhanced Retrieval**: Use graph structure to improve context understanding
+- **Multi-hop Reasoning**: Enable reasoning across related concepts and entities
+- **Entity Linking**: Connect user queries to relevant entities in the knowledge graph
+- **Relationship-Aware Responses**: Generate answers that leverage entity relationships
+- **Graph-based Re-ranking**: Use graph centrality and connectivity for better ranking
