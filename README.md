@@ -12,7 +12,7 @@ Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, lat
 
 ## Architecture Diagram
 
-![Customer Support AI Companion Overall Components Architecture](https://github.com/Myash21/Customer-support-AI-companion/blob/main/data/diagram-export-9-14-2025-2_39_01-PM.png)
+![Customer Support AI Companion Overall Components Architecture](https://res.cloudinary.com/dk2edznkx/image/upload/v1757841663/diagram-export-9-14-2025-2_39_01-PM_wtkfzh.png)
 
 ## Quick Start
 
