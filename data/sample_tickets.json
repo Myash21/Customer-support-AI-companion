@@ -5,6 +5,31 @@
       "body": "Hi team, we're trying to set up our primary Snowflake production database as a new source in Atlan, but the connection keeps failing. We've tried using our standard service account, but it's not working. Our entire BI team is blocked on this integration for a major upcoming project, so it's quite urgent. Could you please provide a definitive list of the exact permissions and credentials needed on the Snowflake side to get this working? Thanks."
     },
     {
+      "id": "TICKET-261",
+      "subject": "Enabling and testing SAML SSO",
+      "body": "We are ready to enable SAML SSO with our Okta instance. However, we are very concerned about disrupting our active users if the configuration is wrong. Is there a way to test the SSO configuration for a specific user or group before we enable it for the entire workspace?"
+    },
+    {
+      "id": "TICKET-262",
+      "subject": "SSO login not assigning user to correct group",
+      "body": "I've just had a new user, 'test.user@company.com', log in via our newly configured SSO. They were authenticated successfully, but they were not added to the 'Data Analysts' group as expected based on our SAML assertions. This is preventing them from accessing any assets. What could be the reason for this mis-assignment?"
+    },
+    {
+      "id": "TICKET-263",
+      "subject": "Integration with existing DLP or secrets manager",
+      "body": "Does Atlan have the capability to integrate with third-party tools like a DLP (Data Loss Prevention) solution or a secrets manager like HashiCorp Vault? We need to ensure that connection credentials and sensitive metadata classifications are handled by our central security systems."
+    },
+    {
+      "id": "TICKET-264",
+      "subject": "Accessing audit logs for compliance reviews",
+      "body": "Our compliance team needs to perform a quarterly review of all activities within Atlan. They need to know who accessed what data, who made permission changes, etc. Where can we find these audit logs, and is there a way to export them or pull them via an API for our records?"
+    },
+    {
+      "id": "TICKET-265",
+      "subject": "How to programmatically create an asset using the REST API?",
+      "body": "I'm trying to create a new custom asset (a 'Report') using the REST API, but my requests keep failing with a 400 error. The API documentation is a bit sparse on the required payload structure for creating new entities. Could you provide a basic cURL or Python `requests` example of what a successful request body should look like?"
+    },
+    {
       "id": "TICKET-271",
       "subject": "Asset extracted but not published to Atlan",
       "body": "This is very strange. I'm looking at the crawler logs, and I can see that the asset 'schema.my_table' was successfully extracted from the source. However, when I search for this table in the Atlan UI, it doesn't appear. It seems like it's getting stuck somewhere between extraction and publishing. Can you please investigate the root cause?"
