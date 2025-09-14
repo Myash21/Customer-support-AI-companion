@@ -10,9 +10,9 @@ A production-minded prototype for end-to-end ticket understanding and assistance
 
 Runs as a lightweight app (see `app.py`) with a focus on practical accuracy, latency, and cost-awareness.
 
-## Architecture
+## Architecture Diagram
 
-![Customer Support AI Companion Overall Components Architecture](data\diagram-export-9-14-2025-2_39_01-PM.png)
+![Customer Support AI Companion Overall Components Architecture](https://github.com/Myash21/Customer-support-AI-companion/blob/main/data/diagram-export-9-14-2025-2_39_01-PM.png)
 
 ## Quick Start
 
