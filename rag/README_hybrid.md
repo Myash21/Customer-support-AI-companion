@@ -2,6 +2,11 @@
 
 This implementation combines **dense retrieval** (semantic search) and **sparse retrieval** (BM25 keyword search) to provide more comprehensive and accurate document retrieval for the customer support AI companion.
 
+## Architecture Diagram
+
+![Hybrid Rag Architecture](https://res.cloudinary.com/dk2edznkx/image/upload/v1757844431/diagram-export-9-14-2025-3_34_44-PM_b6moge.png)
+
+
 ## 🏗️ Architecture
 
 ```
