@@ -254,6 +254,7 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
 - **ChromaDB persistence**
   - **Decision**: On-disk persistence for reusability across runs
   - **Trade-off**: Local disk usage; enables quick startup and reproducibility
+  - **Note**: On Streamlit Cloud, local storage is ephemeral and may reset on redeploys; use an external vector DB for durable persistence
 
 ### Vector Database Choice: ChromaDB vs Alternatives
 
@@ -262,7 +263,7 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
 - **vs FAISS**: 
   - FAISS requires manual index serialization/deserialization and lacks built-in metadata filtering
   - ChromaDB provides automatic persistence, metadata queries, and easier LangChain integration
-  - FAISS is more suitable for research/prototyping; ChromaDB better for production applications
+  - FAISS is more suitable for research/prototyping; ChromaDB is better for lightweight production and local apps
 
 - **vs Qdrant**:
   - Qdrant requires separate server deployment and network configuration
@@ -298,7 +299,7 @@ The following choices were explicitly optimized for deployment on Streamlit Clou
 - **Production risk**: For production deployments with sensitive documentation, this approach poses security risks and should be avoided
 
 **Production-Grade Alternative:**
-For production deployments, will be considering **Qdrant** or **Weaviate** for their advanced features:
+For enterprise production deployments, we should consider **Qdrant** or **Weaviate** for their advanced features:
 - **Qdrant**: Better performance, horizontal scaling, advanced filtering, and production-ready clustering
 - **Weaviate**: GraphQL API, multi-tenancy, enterprise security features, and better metadata management
 - **Rationale**: These offer better scalability, reliability, and enterprise features compared to embedded ChromaDB
